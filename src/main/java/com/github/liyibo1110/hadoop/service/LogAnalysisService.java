@@ -10,44 +10,20 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
 /**
+ * 统计文本文件中ip各自出现的次数（和WordCount基本差不多）
+ * 没有用到什么特别的额外特性
  * @author liyibo
  * @date 2025-12-12 10:46
  */
 @Service
-public class LogAnalysisService {
-    @Value("${hadoop.fs.defaultFS}")
-    private String hdfsUri;
-    @Value("${hadoop.mapreduce.cross-platform}")
-    private String crossPlatform;
-    @Value("${hadoop.mapreduce.framework.name}")
-    private String mapReduceFrameworkName;
-    @Value("${hadoop.yarn.resourcemanager.address}")
-    private String resourceManagerAddress;
-    @Value("${hadoop.yarn.resourcemanager.scheduler.address}")
-    private String resourceManagerSchedulerAddress;
-
+public class LogAnalysisService extends BaseService {
     public void runJob(String inputPath, String outputPath) throws Exception {
-        Configuration conf = new Configuration();
-        conf.set("fs.defaultFS", this.hdfsUri);
-        conf.set("mapreduce.app-submission.cross-platform", this.crossPlatform);
-        conf.set("mapreduce.framework.name", this.mapReduceFrameworkName);
-        conf.set("yarn.resourcemanager.address", this.resourceManagerAddress);
-        conf.set("yarn.resourcemanager.scheduler.address", this.resourceManagerSchedulerAddress);
-        // 上面是必须要配置，否则不能正常运行任务，以下的不用配置
-        // conf.set("hadoop.job.user", "hadoop");
-        // conf.set("mapreduce.jobtracker.address", "master:9001");
-        // conf.set("yarn.resourcemanager.hostname", "master");
-        // conf.set("yarn.resourcemanager.resource-tracker.address", "master:8031");
-        // conf.set("yarn.resourcemanager.admin.address", "master:8033");
-        // conf.set("mapreduce.jobhistory.address", "master:10020");
-        // conf.set("yarn.nodemanager.aux-services", "mapreduce_shuffle");
-
+        Configuration conf = this.createAndInitJobConfig();
         Job job = Job.getInstance(conf, "Log Analyzer");
         // job.setJarByClass(LogAnalysisService.class);
         job.setJar("D:\\ideaSource\\hadoop-demos\\target\\hadoop-demos-1.0.0-mr.jar");
