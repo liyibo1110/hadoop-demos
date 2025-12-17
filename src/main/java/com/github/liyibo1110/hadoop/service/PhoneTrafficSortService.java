@@ -52,7 +52,7 @@ public class PhoneTrafficSortService extends BaseService {
         // 执行任务
         boolean success = job.waitForCompletion(true);
         if(!success)
-            throw new IOException("Phone Traffic Sort job failed.");
+            throw new IOException("job failed.");
     }
 
     public static class SortMapper extends Mapper<Object, Text, PhoneTrafficSortKey, Text> {
@@ -79,8 +79,6 @@ public class PhoneTrafficSortService extends BaseService {
             }
         }
     }
-
-
 
     public static class PhoneTrafficSortKey implements WritableComparable<PhoneTrafficSortKey> {
         private int up;

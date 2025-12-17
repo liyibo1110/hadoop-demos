@@ -47,7 +47,7 @@ public class DateDistinctService extends BaseService {
         // 执行任务
         boolean success = job.waitForCompletion(true);
         if(!success)
-            throw new IOException("Date Distinct job failed.");
+            throw new IOException("job failed.");
     }
 
     public static class DateDistinctMapper extends Mapper<Object, Text, Text, NullWritable> {

@@ -45,7 +45,7 @@ public class LogAnalysisService extends BaseService {
         // 执行任务
         boolean success = job.waitForCompletion(true);
         if(!success)
-            throw new IOException("Log Analysis job failed.");
+            throw new IOException("job failed.");
     }
 
     public static class LogAnalyzerMapper extends Mapper<Object, Text, Text, IntWritable> {

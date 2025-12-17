@@ -7,6 +7,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -17,26 +18,33 @@ import org.springframework.stereotype.Service;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * 统计文本文件中特定手机号的上下行流量之和
- * 自定义实现了新的数据类型，map之后的输出value是个自定义对象
+ * 文本文件中特定手机号的上下行流量分区，即特定前缀的手机号，归到特定的文件中
  * @author liyibo
  * @date 2025-12-12 18:11
  */
 @Service
-public class PhoneTrafficService extends BaseService {
-    private static final Logger logger = LoggerFactory.getLogger(PhoneTrafficService.class);
+public class PhoneTrafficPartitionService extends BaseService {
+    private static final Logger logger = LoggerFactory.getLogger(PhoneTrafficPartitionService.class);
 
     public void runJob(String inputPath, String outputPath) throws Exception {
         Configuration conf = this.createAndInitJobConfig();
-        Job job = Job.getInstance(conf, "Phone Traffic");
+        Job job = Job.getInstance(conf, "Phone Traffic Partition");
         job.setJar("D:\\ideaSource\\hadoop-demos\\target\\hadoop-demos-1.0.0-mr.jar");
-        job.setMapperClass(PhoneTrafficService.PhoneTrafficMapper.class);
-        job.setReducerClass(PhoneTrafficService.PhoneTrafficReducer.class);
-
+        // mapper
+        job.setMapperClass(PhoneTrafficMapper.class);
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(PhoneTrafficWritable.class);
+        // reducer
+        job.setReducerClass(PhoneTrafficReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(PhoneTrafficWritable.class);
+        // partition
+        job.setPartitionerClass(PhoneTrafficPartitioner.class);
+        job.setNumReduceTasks(5);
 
         FileInputFormat.addInputPath(job, new Path(inputPath));
         FileOutputFormat.setOutputPath(job, new Path(outputPath));
@@ -140,6 +148,21 @@ public class PhoneTrafficService extends BaseService {
 
         public void setSum(int sum) {
             this.sum = sum;
+        }
+    }
+
+    public static class PhoneTrafficPartitioner extends Partitioner<Text, PhoneTrafficWritable> {
+        private static Map<String, Integer> numberDict = new HashMap<>();
+        static {
+            numberDict.put("133", 0);
+            numberDict.put("135", 1);
+            numberDict.put("137", 2);
+            numberDict.put("138", 3);
+        }
+        @Override
+        public int getPartition(Text key, PhoneTrafficWritable value, int numPartitions) {
+            String prefix = key.toString().substring(0, 3);
+            return numberDict.getOrDefault(prefix, 4);
         }
     }
 }
