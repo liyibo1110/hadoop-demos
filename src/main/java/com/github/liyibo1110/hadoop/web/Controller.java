@@ -7,6 +7,7 @@ import com.github.liyibo1110.hadoop.service.OrderProductPriceMaxService;
 import com.github.liyibo1110.hadoop.service.PhoneTrafficPartitionService;
 import com.github.liyibo1110.hadoop.service.PhoneTrafficService;
 import com.github.liyibo1110.hadoop.service.PhoneTrafficSortService;
+import com.github.liyibo1110.hadoop.service.RecommendService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,6 +32,8 @@ public class Controller {
     private OrderProductPriceMaxService orderProductPriceMaxService;
     @Autowired
     private MutualFriendService mutualFriendService;
+    @Autowired
+    private RecommendService recommendService;
     @GetMapping("/runLogAnalysis")
     public String logAnalysis(String inputPath, String outputPath) {
         // 假定数据存放在HDFS上的特定目录里
@@ -117,6 +120,16 @@ public class Controller {
         mergedPath = "/mutualFriend/merged";
         try {
             this.mutualFriendService.runJob(inputPath, outputPath, mergedPath);
+            return "ok";
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+    }
+
+    @GetMapping("/runRecommend")
+    public String recommend() {
+        try {
+            this.recommendService.runJob();
             return "ok";
         } catch (Exception e) {
             return e.getMessage();
